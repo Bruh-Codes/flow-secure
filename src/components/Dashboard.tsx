@@ -1,16 +1,18 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EscrowCard, type Escrow } from "./EscrowCard";
+import { AutomationPanel } from "./AutomationPanel";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Wallet } from "lucide-react";
 
 interface DashboardProps {
   escrows: Escrow[];
   onCreateEscrow: () => void;
   onClaimEscrow: (id: string) => void;
+  walletAddress: string | null;
 }
 
-export const Dashboard = ({ escrows, onCreateEscrow, onClaimEscrow }: DashboardProps) => {
+export const Dashboard = ({ escrows, onCreateEscrow, onClaimEscrow, walletAddress }: DashboardProps) => {
   const [activeTab, setActiveTab] = useState("all");
 
   const activeEscrows = escrows.filter((e) => e.status === "active");
@@ -24,13 +26,29 @@ export const Dashboard = ({ escrows, onCreateEscrow, onClaimEscrow }: DashboardP
     { label: "Refunded", value: refundedEscrows.length, color: "text-muted-foreground" },
   ];
 
+  if (!walletAddress) {
+    return (
+      <div className="container mx-auto px-4 py-24">
+        <div className="max-w-md mx-auto text-center space-y-6">
+          <div className="w-16 h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto">
+            <Wallet className="h-8 w-8 text-accent" />
+          </div>
+          <h2 className="text-2xl font-bold">Connect Your Wallet</h2>
+          <p className="text-muted-foreground">
+            Connect your Flow wallet to view your escrows and start managing payments
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mx-auto px-4 py-12">
+    <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-            <p className="text-muted-foreground">Manage your escrows and payments</p>
+            <p className="text-muted-foreground">Manage your escrows and automated payments</p>
           </div>
           <Button onClick={onCreateEscrow} className="bg-accent hover:bg-accent/90 text-accent-foreground">
             <Plus className="h-4 w-4 mr-2" />
@@ -48,11 +66,12 @@ export const Dashboard = ({ escrows, onCreateEscrow, onClaimEscrow }: DashboardP
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="all">All</TabsTrigger>
             <TabsTrigger value="active">Active</TabsTrigger>
             <TabsTrigger value="claimed">Claimed</TabsTrigger>
             <TabsTrigger value="refunded">Refunded</TabsTrigger>
+            <TabsTrigger value="automation">Automation</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="mt-6">
@@ -69,6 +88,10 @@ export const Dashboard = ({ escrows, onCreateEscrow, onClaimEscrow }: DashboardP
 
           <TabsContent value="refunded" className="mt-6">
             <EscrowGrid escrows={refundedEscrows} onClaim={onClaimEscrow} />
+          </TabsContent>
+
+          <TabsContent value="automation" className="mt-6">
+            <AutomationPanel />
           </TabsContent>
         </Tabs>
       </div>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Hero } from "@/components/Hero";
+import { Navbar } from "@/components/Navbar";
 import { Dashboard } from "@/components/Dashboard";
 import { CreateEscrowDialog } from "@/components/CreateEscrowDialog";
 import { type Escrow } from "@/components/EscrowCard";
@@ -7,6 +7,7 @@ import { toast } from "sonner";
 
 const Index = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [escrows, setEscrows] = useState<Escrow[]>([
     {
       id: "0xa1b2c3d4e5f67890",
@@ -40,6 +41,20 @@ const Index = () => {
       txHash: "0xdeadbeef12345678",
     },
   ]);
+
+  const handleConnectWallet = () => {
+    // Mock wallet connection - in production, integrate with Flow wallet SDK
+    const mockAddress = `0x${Math.random().toString(16).slice(2, 18)}`;
+    setWalletAddress(mockAddress);
+    toast.success("Wallet connected", {
+      description: `Connected to ${mockAddress.slice(0, 6)}...${mockAddress.slice(-4)}`,
+    });
+  };
+
+  const handleDisconnectWallet = () => {
+    setWalletAddress(null);
+    toast.success("Wallet disconnected");
+  };
 
   const handleCreateEscrow = (data: {
     recipient: string;
@@ -79,11 +94,16 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Hero onCreateEscrow={() => setShowCreateDialog(true)} />
+      <Navbar
+        walletAddress={walletAddress}
+        onConnectWallet={handleConnectWallet}
+        onDisconnectWallet={handleDisconnectWallet}
+      />
       <Dashboard
         escrows={escrows}
         onCreateEscrow={() => setShowCreateDialog(true)}
         onClaimEscrow={handleClaimEscrow}
+        walletAddress={walletAddress}
       />
       <CreateEscrowDialog
         open={showCreateDialog}
