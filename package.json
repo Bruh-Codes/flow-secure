@@ -1,0 +1,13 @@
+{
+  "name": "flow-vault-secure",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "flow-escrow"
+  ],
+  "scripts": {
+    "frontend:dev": "yarn workspace vite_react_shadcn_ts dev",
+    "frontend:build": "yarn workspace vite_react_shadcn_ts build",
+    "contracts:test": "cd flow-escrow && forge test"
+  }
+}
