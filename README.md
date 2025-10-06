@@ -1,4 +1,6 @@
-# FlowVault Secure
+<img width="889" height="500" alt="image" src="https://github.com/user-attachments/assets/0d450109-6d93-4fb0-a25a-536ad6f42582" />
+
+# Introducing FlowVault Secure
 
 FlowVault Secure is a decentralized escrow application that allows for secure, time-locked transfers of native currency and ERC20 tokens on EVM-compatible blockchains. It features a robust Solidity smart contract and a modern, user-friendly web interface. This project is designed to be integrated with Forte Workflows and automations.
 
@@ -92,10 +94,9 @@ Before you begin, ensure you have the following installed:
 ### 1. Clone the Repository
 
 ```bash
-git clone <YOUR_GIT_REPOSITORY_URL>
+git clone https://github.com/Bruh-Codes/flow-vault-secure
 cd flow-vault-secure
 ```
-
 ### 2. Install Dependencies
 
 Run the following command from the root directory to install all necessary dependencies for both the frontend and the smart contract project.
