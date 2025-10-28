@@ -1,117 +1,180 @@
-import { useState } from "react";
-import { Navbar } from "@/components/Navbar";
-import { Dashboard } from "@/components/Dashboard";
-import { CreateEscrowDialog } from "@/components/CreateEscrowDialog";
-import { type Escrow } from "@/components/EscrowCard";
-import { toast } from "sonner";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { WalletConnection } from "@/components/WalletConnection";
+import { SendTokensForm } from "@/components/SendTokensForm";
+import { ClaimTokensForm } from "@/components/ClaimTokensForm";
+import { TransactionList } from "@/components/TransactionList";
+import { Shield } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import * as fcl from "@onflow/fcl";
+import "@/config/flow";
+import { useFlowEscrow } from "@/hooks/useFlowEscrow";
+import { ModeToggle } from "@/components/dark-mode-toggle";
 
 const Index = () => {
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [escrows, setEscrows] = useState<Escrow[]>([
-    {
-      id: "0xa1b2c3d4e5f67890",
-      recipient: "0x1234567890abcdef",
-      amount: "100.00",
-      token: "FLOW",
-      expiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
-      status: "active",
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      txHash: "0xabcdef123456789",
-    },
-    {
-      id: "0x9876543210fedcba",
-      recipient: "0xfedcba0987654321",
-      amount: "50.00",
-      token: "USDC",
-      expiry: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // Yesterday (expired)
-      status: "refunded",
-      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000), // 10 days ago
-      txHash: "0x123456789abcdef",
-    },
-    {
-      id: "0x1122334455667788",
-      recipient: "0xaabbccddeeff0011",
-      amount: "250.00",
-      token: "FLOW",
-      expiry: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000), // 14 days from now
-      status: "claimed",
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000), // 5 days ago
-      claimedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-      txHash: "0xdeadbeef12345678",
-    },
-  ]);
+	const [isWalletConnected, setIsWalletConnected] = useState(false);
+	const [walletAddress, setWalletAddress] = useState("");
+	const { toast } = useToast();
+	const {
+		escrows,
+		fetchActiveEscrows,
+		fetchEscrowsBySender,
+		fetchEscrowsByReceiver,
+	} = useFlowEscrow();
 
-  const handleConnectWallet = () => {
-    // Mock wallet connection - in production, integrate with Flow wallet SDK
-    const mockAddress = `0x${Math.random().toString(16).slice(2, 18)}`;
-    setWalletAddress(mockAddress);
-    toast.success("Wallet connected", {
-      description: `Connected to ${mockAddress.slice(0, 6)}...${mockAddress.slice(-4)}`,
-    });
-  };
+	// Listen to Flow wallet connection state
+	useEffect(() => {
+		const unsubscribe = fcl.currentUser().subscribe((user) => {
+			if (user?.addr) {
+				setWalletAddress(user.addr);
+				setIsWalletConnected(true);
+				if (!walletAddress) {
+					toast({
+						title: "Wallet Connected",
+						description: "Your Flow wallet has been successfully connected.",
+					});
+				}
+			} else {
+				setWalletAddress("");
+				setIsWalletConnected(false);
+			}
+		});
 
-  const handleDisconnectWallet = () => {
-    setWalletAddress(null);
-    toast.success("Wallet disconnected");
-  };
+		return () => unsubscribe();
+	}, [toast, walletAddress]);
 
-  const handleCreateEscrow = (data: {
-    recipient: string;
-    amount: string;
-    token: string;
-    expiry: Date;
-  }) => {
-    const newEscrow: Escrow = {
-      id: `0x${Math.random().toString(16).slice(2, 18)}`,
-      recipient: data.recipient,
-      amount: data.amount,
-      token: data.token,
-      expiry: data.expiry,
-      status: "active",
-      createdAt: new Date(),
-      txHash: `0x${Math.random().toString(16).slice(2, 18)}`,
-    };
+	// Fetch escrows when wallet connects
+	useEffect(() => {
+		if (isWalletConnected) {
+			fetchActiveEscrows();
+		}
+	}, [fetchActiveEscrows, isWalletConnected]);
 
-    setEscrows([newEscrow, ...escrows]);
-    toast.success("Escrow created successfully", {
-      description: `${data.amount} ${data.token} locked until ${data.expiry.toLocaleDateString()}`,
-    });
-  };
+	const connectWallet = () => {
+		// FCL authentication is handled in WalletConnection component
+	};
 
-  const handleClaimEscrow = (id: string) => {
-    setEscrows(
-      escrows.map((e) =>
-        e.id === id
-          ? { ...e, status: "claimed" as const, claimedAt: new Date() }
-          : e
-      )
-    );
-    toast.success("Funds claimed successfully", {
-      description: "Tokens have been transferred to your wallet",
-    });
-  };
+	const disconnectWallet = () => {
+		setWalletAddress("");
+		setIsWalletConnected(false);
+		toast({
+			title: "Wallet Disconnected",
+			description: "Your wallet has been disconnected.",
+		});
+	};
 
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar
-        walletAddress={walletAddress}
-        onConnectWallet={handleConnectWallet}
-        onDisconnectWallet={handleDisconnectWallet}
-      />
-      <Dashboard
-        escrows={escrows}
-        onCreateEscrow={() => setShowCreateDialog(true)}
-        onClaimEscrow={handleClaimEscrow}
-        walletAddress={walletAddress}
-      />
-      <CreateEscrowDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        onCreateEscrow={handleCreateEscrow}
-      />
-    </div>
-  );
+	return (
+		<div className="min-h-screen bg-background">
+			{/* Header */}
+			<header className="border-b border-border bg-card">
+				<div className="container mx-auto px-4 py-6">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div className="p-2 bg-gradient-primary rounded-lg">
+								<Shield className="h-6 w-6 text-primary-foreground" />
+							</div>
+							<div>
+								<h1 className="text-2xl font-bold text-foreground">
+									SecureTransfer
+								</h1>
+								<p className="text-sm text-muted-foreground">
+									Secure FLOW escrow transfers on testnet
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</header>
+
+			<main className="container mx-auto px-4 py-8">
+				{/* Wallet Connection */}
+				<div className="mb-8">
+					<WalletConnection
+						isConnected={isWalletConnected}
+						walletAddress={walletAddress}
+						onConnect={connectWallet}
+						onDisconnect={disconnectWallet}
+					/>
+				</div>
+
+				{isWalletConnected ? (
+					<div className="space-y-8">
+						<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+							{/* Main Actions */}
+							<div>
+								<Tabs defaultValue="send" className="w-full">
+									<TabsList className="grid w-full grid-cols-2 mb-4">
+										<TabsTrigger value="send">Create Escrow</TabsTrigger>
+										<TabsTrigger value="claim">Claim Escrow</TabsTrigger>
+									</TabsList>
+									<TabsContent value="send">
+										<SendTokensForm
+											walletAddress={walletAddress}
+											onSuccess={fetchActiveEscrows}
+										/>
+									</TabsContent>
+									<TabsContent value="claim">
+										<ClaimTokensForm
+											walletAddress={walletAddress}
+											onSuccess={fetchActiveEscrows}
+										/>
+									</TabsContent>
+								</Tabs>
+							</div>
+
+							{/* Escrow History */}
+							<div>
+								<TransactionList
+									escrows={escrows}
+									walletAddress={walletAddress}
+									onRefresh={fetchActiveEscrows}
+								/>
+							</div>
+						</div>
+					</div>
+				) : (
+					<div className="text-center py-12">
+						<div className="mx-auto w-24 h-24 bg-muted/20 rounded-full flex items-center justify-center mb-6">
+							<Shield className="h-12 w-12 text-muted-foreground" />
+						</div>
+						<h2 className="text-2xl font-semibold text-foreground mb-3">
+							Ready to Start?
+						</h2>
+						<p className="text-muted-foreground mb-6 max-w-md mx-auto">
+							Connect your wallet to create and claim FLOW escrows on testnet.
+						</p>
+						<Button
+							onClick={connectWallet}
+							className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
+							size="lg"
+						>
+							Get Started
+						</Button>
+					</div>
+				)}
+			</main>
+
+			{/* Footer */}
+			<footer className="border-t border-border bg-card mt-16">
+				<div className="container mx-auto px-4 py-6">
+					<div className="text-center text-sm text-muted-foreground">
+						<p>
+							SecureTransfer - Secure FLOW escrow transfers on Flow blockchain
+						</p>
+						<p>
+							<a
+								href="/privacy-policy"
+								className="text-primary hover:underline"
+							>
+								Privacy Policy
+							</a>
+						</p>
+					</div>
+				</div>
+			</footer>
+		</div>
+	);
 };
 
 export default Index;

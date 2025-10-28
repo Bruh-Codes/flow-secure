@@ -1,8 +1,16 @@
 <img width="889" height="500" alt="image" src="https://github.com/user-attachments/assets/0d450109-6d93-4fb0-a25a-536ad6f42582" />
 
-# Introducing FlowVault Secure
+## Problem Solved
 
-FlowVault Secure is a decentralized escrow application that allows for secure, time-locked transfers of native currency and ERC20 tokens on EVM-compatible blockchains. It features a robust Solidity smart contract and a modern, user-friendly web interface. This project is designed to be integrated with Forte Workflows and automations.
+Flow-Secure addresses the critical need for **trustless, automated, and secure conditional asset transfers** on the Flow blockchain. It tackles:
+
+1.  **Lack of Trust in Peer-to-Peer Transactions:** Eliminates the need for intermediaries by holding funds in a smart contract, ensuring release only upon predefined conditions.
+2.  **Manual & Inefficient Time-Sensitive Actions:** Leverages **Flow Forte automation and scheduled transactions** to automatically refund expired escrows, removing manual oversight and ensuring timely execution.
+3.  **Opaque & Insecure Transfers:** Provides transparency and auditability through open-source Cadence smart contracts, with built-in security measures.
+
+# Introducing Flow-Secure
+
+Flow-Secure is a decentralized escrow application that allows for secure, time-locked transfers of native currency and Flow tokens on the Flow blockchain. It features robust Cadence smart contracts and a modern, user-friendly web interface. This project is designed to be integrated with Forte Workflows and automations.
 
 ## How It Works: The Escrow Process
 
@@ -60,12 +68,22 @@ the event EscrowRefunded is emitted.
 Dashboard Update:
 The frontend listens for EscrowRefunded and updates the escrow status to Refunded automatically by Forte.
 
+## Deployment
+
+The Flow-Secure Cadence contracts are deployed on the **Flow Testnet**.
+
+**FlowVaultEscrow Contract Address:** `0xa72b13062e901c7c`
+**Flowscan Link (FlowVaultEscrow):** [https://testnet.flowscan.io/contract/A.a72b13062e901c7c.FlowVaultEscrow](https://testnet.flowscan.io/contract/A.a72b13062e901c7c.FlowVaultEscrow)
+
+**EscrowRefundHandler Contract Address:** `0xa72b13062e901c7c`
+**Flowscan Link (EscrowRefundHandler):** [https://testnet.flowscan.io/contract/A.a72b13062e901c7c.EscrowRefundHandler](https://testnet.flowscan.io/contract/A.a72b13062e901c7c.EscrowRefundHandler)
+
 ## Project Structure
 
 This project is a monorepo managed with Yarn Workspaces.
 
-- `flow-escrow/`: A Foundry project containing the `FlowVaultEscrow` smart contract.
-- `frontend/`: A React application providing the web interface for interacting with the escrow system.
+- `flowVault/`: A Cadence project containing the `FlowVaultEscrow` smart contract and Forte integration.
+- `frontend/`: A React application providing the web interface for interacting with the escrow system. See [frontend/README.md](frontend/README.md) for more details.
 
 ---
 
@@ -73,8 +91,8 @@ This project is a monorepo managed with Yarn Workspaces.
 
 | Area               | Technologies                                                                                                                                                                                             |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Smart Contract** | Solidity, [Foundry](https://getfoundry.sh/), [OpenZeppelin](https://www.openzeppelin.com/contracts)                                                                                                      |
-| **Frontend**       | [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [Wagmi](https://wagmi.sh/), Reown |
+| **Smart Contract** | Cadence, [Flow CLI](https://docs.onflow.org/flow-cli/), [Flow Emulator](https://docs.onflow.org/flow-cli/#flow-emulator)                                                                                                      |
+| **Frontend**       | [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [FCL (Flow Client Library)](https://developers.flow.com/tools/fcl-js/) |
 | **Automation**     | Forte Workflows                                                                                                                                                                                          |
 
 ---
@@ -85,7 +103,7 @@ Before you begin, ensure you have the following installed:
 
 - [Node.js](https://nodejs.org/en) (v18 or later)
 - [Yarn](https://yarnpkg.com/getting-started/install)
-- [Foundry](https://book.getfoundry.sh/getting-started/installation)
+- [Flow CLI](https://docs.onflow.org/flow-cli/install)
 
 ---
 
@@ -107,14 +125,22 @@ yarn install
 
 ### 3. Set up the Smart Contracts
 
-The smart contracts are managed using Foundry.
+The smart contracts are managed using the Flow CLI.
 
-**Run Local Blockchain**
+**Run Local Flow Emulator**
 
-For local development and testing, you can start a local Anvil node:
+For local development and testing, you can start a local Flow emulator:
 
 ```bash
-anvil
+flow emulator
+```
+
+**Deploy Contracts to Emulator**
+
+To deploy the contracts to your local emulator:
+
+```bash
+flow project deploy
 ```
 
 **Test the Contracts**
@@ -122,7 +148,7 @@ anvil
 To run the test suite for the `FlowVaultEscrow` contract:
 
 ```bash
-yarn contracts:test
+flow test
 ```
 
 ### 4. Run the Frontend
@@ -143,4 +169,5 @@ You can run the following scripts from the root directory of the project:
 
 - `yarn frontend:dev`: Starts the frontend development server.
 - `yarn frontend:build`: Builds the frontend application for production.
-- `yarn contracts:test`: Runs the Solidity smart contract tests using Foundry.
+- `yarn contracts:test`: Runs the Cadence smart contract tests using Flow CLI.
+- `yarn contracts:deploy`: Deploys the Cadence smart contracts to the configured network.

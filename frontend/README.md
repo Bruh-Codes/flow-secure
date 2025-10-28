@@ -1,73 +1,102 @@
-# Welcome to your Lovable project
+# FlowVault Secure Frontend
 
-## Project info
+This is the frontend application for FlowVault Secure, a decentralized escrow system built on the Flow blockchain. It provides a user-friendly interface for creating, claiming, and managing FLOW token escrows.
 
-**URL**: https://lovable.dev/projects/74a04299-e2f9-49dc-a76b-19396422ed60
+## Features
 
-## How can I edit this code?
+*   **Wallet Connection:** Connects to Flow wallets using FCL (Flow Client Library).
+*   **Create Escrow:** Allows users to create new escrows by specifying a recipient, amount, expiry duration, and refund mode (manual or automatic).
+*   **Claim Escrow:** Enables recipients to claim their escrowed FLOW tokens.
+*   **Escrow History:** Displays a list of all active, claimed, and refunded escrows relevant to the connected wallet.
+*   **Manual Refund:** Provides an option for senders to manually refund expired escrows (if the refund mode was set to manual).
+*   **Forte Integration:** Supports automatic refunds for escrows created with the "auto" refund mode, leveraging Flow Forte Workflows.
+*   **Responsive Design:** Built with Tailwind CSS and shadcn/ui for a modern and responsive user experience.
 
-There are several ways of editing your application.
+## Tech Stack
 
-**Use Lovable**
+*   **Framework:** React
+*   **Language:** TypeScript
+*   **Build Tool:** Vite
+*   **Styling:** Tailwind CSS, shadcn/ui
+*   **Flow Integration:** FCL (Flow Client Library), @onflow/react-sdk
+*   **State Management:** React Hooks
+*   **Routing:** React Router DOM
+*   **Notifications:** Sonner
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/74a04299-e2f9-49dc-a76b-19396422ed60) and start prompting.
+## Getting Started
 
-Changes made via Lovable will be committed automatically to this repo.
+### Prerequisites
 
-**Use your preferred IDE**
+Ensure you have [Node.js](https://nodejs.org/en) (v18 or later) and [Yarn](https://yarnpkg.com/getting-started/install) installed.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Installation
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+From the project root directory, install all dependencies:
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```bash
+yarn install
 ```
 
-**Edit a file directly in GitHub**
+### Running the Development Server
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+To start the frontend development server:
 
-**Use GitHub Codespaces**
+```bash
+yarn frontend:dev
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+The application will be available at `http://localhost:5173` (or the next available port).
 
-## What technologies are used for this project?
+### Building for Production
 
-This project is built with:
+To build the application for production:
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+```bash
+yarn frontend:build
+```
 
-## How can I deploy this project?
+The build artifacts will be placed in the `dist` directory.
 
-Simply open [Lovable](https://lovable.dev/projects/74a04299-e2f9-49dc-a76b-19396422ed60) and click on Share -> Publish.
+## Configuration
 
-## Can I connect a custom domain to my Lovable project?
+The Flow network configuration and contract addresses are defined in `src/config/flow.ts`. Ensure these addresses match your deployed Cadence contracts on the target Flow network (e.g., Testnet).
 
-Yes, you can!
+## Interaction with Flow Contracts
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+The frontend interacts with the `FlowVaultEscrow` Cadence contract deployed on the Flow blockchain. Key interactions include:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+*   **`createEscrow`:** Initiates a transaction to create a new escrow on-chain.
+*   **`claimEscrow`:** Initiates a transaction for a recipient to claim funds from an active escrow.
+*   **`refundEscrow`:** Initiates a transaction for a sender to manually refund an expired escrow.
+*   **`fetchActiveEscrows`:** Queries the blockchain to retrieve a list of active escrows.
+
+The `useFlowEscrow` hook (`src/hooks/useFlowEscrow.ts`) encapsulates all the Cadence transaction and script logic for these interactions.
+
+### Testing with Local Accounts
+
+For local development and testing, you might need to configure your Flow client (FCL) to use a private key associated with a test account. This allows your frontend to sign transactions directly from your development environment.
+
+**Important:** Never use private keys from your mainnet accounts for local testing. Always use dedicated testnet accounts.
+
+To add a private key to your Flow configuration (e.g., in `flow.json` or directly in your FCL setup), you typically need to:
+
+1.  **Generate a test account** on the Flow Testnet (or local emulator).
+2.  **Obtain the private key** for that test account.
+3.  **Configure FCL** (usually in `flow.json` or `src/config/flow.ts`) to include this private key for the desired account address. The exact method depends on your FCL setup, but it often involves adding an `accounts` object with the address and private key.
+
+Example (conceptual, actual implementation may vary based on your `flow.json` or FCL config):
+
+```json
+{
+  "contracts": { ... },
+  "networks": { ... },
+  "accounts": {
+    "test-account": {
+      "address": "0x...",
+      "keys": "YOUR_PRIVATE_KEY_HERE"
+    }
+  }
+}
+```
+
+Refer to the [Flow Client Library (FCL) documentation](https://developers.flow.com/tools/clients/fcl-js/configure-fcl) for detailed instructions on configuring accounts and keys.
