@@ -1,27 +1,23 @@
-# FlowVault Secure Frontend
-
-This is the frontend application for FlowVault Secure, a decentralized escrow system built on the Flow blockchain. It provides a user-friendly interface for creating, claiming, and managing FLOW token escrows.
-
 ## Features
 
-*   **Wallet Connection:** Connects to Flow wallets using FCL (Flow Client Library).
-*   **Create Escrow:** Allows users to create new escrows by specifying a recipient, amount, expiry duration, and refund mode (manual or automatic).
-*   **Claim Escrow:** Enables recipients to claim their escrowed FLOW tokens.
-*   **Escrow History:** Displays a list of all active, claimed, and refunded escrows relevant to the connected wallet.
-*   **Manual Refund:** Provides an option for senders to manually refund expired escrows (if the refund mode was set to manual).
-*   **Forte Integration:** Supports automatic refunds for escrows created with the "auto" refund mode, leveraging Flow Forte Workflows.
-*   **Responsive Design:** Built with Tailwind CSS and shadcn/ui for a modern and responsive user experience.
+- **Wallet Connection:** Connects to Flow wallets using FCL (Flow Client Library).
+- **Create Escrow:** Allows users to create new escrows by specifying a recipient, amount, expiry duration, and refund mode (manual or automatic).
+- **Claim Escrow:** Enables recipients to claim their escrowed FLOW tokens.
+- **Escrow History:** Displays a list of all active, claimed, and refunded escrows relevant to the connected wallet.
+- **Manual Refund:** Provides an option for senders to manually refund expired escrows (if the refund mode was set to manual).
+- **Forte Integration:** Supports automatic refunds for escrows created with the "auto" refund mode, leveraging Flow Forte Workflows.
+- **Responsive Design:** Built with Tailwind CSS and shadcn/ui for a modern and responsive user experience.
 
 ## Tech Stack
 
-*   **Framework:** React
-*   **Language:** TypeScript
-*   **Build Tool:** Vite
-*   **Styling:** Tailwind CSS, shadcn/ui
-*   **Flow Integration:** FCL (Flow Client Library), @onflow/react-sdk
-*   **State Management:** React Hooks
-*   **Routing:** React Router DOM
-*   **Notifications:** Sonner
+- **Framework:** React
+- **Language:** TypeScript
+- **Build Tool:** Vite
+- **Styling:** Tailwind CSS, shadcn/ui
+- **Flow Integration:** FCL (Flow Client Library), @onflow/react-sdk
+- **State Management:** React Hooks
+- **Routing:** React Router DOM
+- **Notifications:** Sonner
 
 ## Getting Started
 
@@ -65,10 +61,10 @@ The Flow network configuration and contract addresses are defined in `src/config
 
 The frontend interacts with the `FlowVaultEscrow` Cadence contract deployed on the Flow blockchain. Key interactions include:
 
-*   **`createEscrow`:** Initiates a transaction to create a new escrow on-chain.
-*   **`claimEscrow`:** Initiates a transaction for a recipient to claim funds from an active escrow.
-*   **`refundEscrow`:** Initiates a transaction for a sender to manually refund an expired escrow.
-*   **`fetchActiveEscrows`:** Queries the blockchain to retrieve a list of active escrows.
+- **`createEscrow`:** Initiates a transaction to create a new escrow on-chain.
+- **`claimEscrow`:** Initiates a transaction for a recipient to claim funds from an active escrow.
+- **`refundEscrow`:** Initiates a transaction for a sender to manually refund an expired escrow.
+- **`fetchActiveEscrows`:** Queries the blockchain to retrieve a list of active escrows.
 
 The `useFlowEscrow` hook (`src/hooks/useFlowEscrow.ts`) encapsulates all the Cadence transaction and script logic for these interactions.
 

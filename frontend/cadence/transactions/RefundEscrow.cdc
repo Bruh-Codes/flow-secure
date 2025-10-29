@@ -1,10 +1,10 @@
 import FlowVaultEscrow from "FlowVaultEscrow"
 
-transaction(escrowId: UInt64) {
+transaction(escrowId: UInt64,senderAddress:Address) {
   prepare(signer: &Account) {}
 
   execute {
-    FlowVaultEscrow.refundEscrow(id: escrowId)
+    FlowVaultEscrow.refundEscrow(id: escrowId,signerAddress:senderAddress)
   }
 }
 

@@ -348,7 +348,7 @@ access(all) fun testEscrowLifecycle() {
 
                 expiryRefund,
 
-                "auto"
+                "manual"
 
             ]
 
@@ -376,7 +376,7 @@ access(all) fun testEscrowLifecycle() {
 
                 .concat("\n")
 
-                .concat("transaction(escrowId: UInt64) {\n")
+                .concat("transaction(escrowId: UInt64, signerAddress: Address) {\n")
 
                 .concat("  prepare(signer: &Account) {}")
 
@@ -384,7 +384,7 @@ access(all) fun testEscrowLifecycle() {
 
                 .concat("  execute {\n")
 
-                .concat("    FlowVaultEscrow.refundEscrow(id: escrowId)\n")
+                .concat("    FlowVaultEscrow.refundEscrow(id: escrowId, signerAddress: signerAddress)\n")
 
                 .concat("  }\n")
 
@@ -394,7 +394,7 @@ access(all) fun testEscrowLifecycle() {
 
             signers: [sender],
 
-            arguments: [2 as UInt64] // Escrow ID
+            arguments: [2 as UInt64, sender.address] // Escrow ID and signerAddress
 
         )
 

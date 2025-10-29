@@ -125,18 +125,14 @@
 	"accounts": {
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
-			"key": ""
+			"key": "d55ac3854640b3f6a1d0a5975b576b3f3a948c7a434744c4194c99594b3b940a"
 		},
 		"testnet": {
-			"address": "0x44fa7a1491baf365",
+			"address": "8930cf9fab05a37b",
 			"key": {
 				"type": "file",
 				"location": "testnet.pkey"
 			}
-		},
-		"testnet-account": {
-			"address": "ace864bad9a01ba5",
-			"key": "331f9052c4a55180cfb2a4d47ee05e0cc6d3d6ba6a4eff47e218e093d8e5ff2e"
 		}
 	},
 	"deployments": {
@@ -144,7 +140,7 @@
 			"emulator-account": ["FlowVaultEscrow", "EscrowRefundHandler"]
 		},
 		"testnet": {
-			"testnet-account": ["FlowVaultEscrow", "EscrowRefundHandler"]
+			"testnet": ["FlowVaultEscrow", "EscrowRefundHandler"]
 		}
 	}
 }

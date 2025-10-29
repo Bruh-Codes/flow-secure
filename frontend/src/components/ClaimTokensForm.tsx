@@ -46,12 +46,17 @@ export const ClaimTokensForm = ({
 				if (error.message.includes("Escrow has expired")) {
 					errorMessage = "Claim Failed: The escrow has expired.";
 				} else if (/only receiver can claim/i.test(error.message)) {
-					errorMessage = "Claim Failed: Only the designated receiver can claim this escrow.";
+					errorMessage =
+						"Claim Failed: Only the designated receiver can claim this escrow.";
 				} else {
 					errorMessage = error.message;
 				}
-			} else if (typeof error === 'object' && error !== null && 'message' in error) {
-				errorMessage = (error as any).message;
+			} else if (
+				typeof error === "object" &&
+				error !== null &&
+				"message" in error
+			) {
+				errorMessage = error.message;
 			} else {
 				errorMessage = String(error);
 			}

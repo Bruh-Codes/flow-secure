@@ -16,7 +16,7 @@ const App = () => {
 				appDetailTitle: "My Flow App",
 				appDetailIcon: "https://example.com/icon.png",
 				appDetailDescription: "A decentralized app on Flow",
-				appDetailUrl: "https://myapp.com",
+				appDetailUrl: "https://secured-flow.vercel.app",
 			}}
 			flowJson={flowJson}
 		>

@@ -32,7 +32,7 @@ export const SendTokensForm = ({
 }: SendTokensFormProps) => {
 	const [recipient, setRecipient] = useState("");
 	const [amount, setAmount] = useState("");
-	const [duration, setDuration] = useState("24");
+	const [duration, setDuration] = useState("86400");
 	const [refundMode, setRefundMode] = useState<"manual" | "auto">("manual");
 	const { toast } = useToast();
 	const { createEscrow, loading } = useFlowEscrow();
@@ -49,8 +49,8 @@ export const SendTokensForm = ({
 		}
 
 		try {
-			const durationHours = parseInt(duration);
-			if (isNaN(durationHours)) {
+			const durationInSeconds = parseInt(duration);
+			if (isNaN(durationInSeconds)) {
 				toast({
 					variant: "destructive",
 					title: "Invalid Duration",
@@ -61,7 +61,7 @@ export const SendTokensForm = ({
 			const txId = await createEscrow(
 				amount,
 				recipient,
-				durationHours * 3600,
+				durationInSeconds,
 				refundMode
 			);
 
@@ -76,7 +76,7 @@ export const SendTokensForm = ({
 			// Reset form
 			setRecipient("");
 			setAmount("");
-			setDuration("24");
+			setDuration("86400");
 			setRefundMode("manual");
 
 			onSuccess();
@@ -143,18 +143,20 @@ export const SendTokensForm = ({
 					</div>
 
 					<div className="space-y-2">
-						<Label htmlFor="duration">Expiry (hours)</Label>
+						<Label htmlFor="duration">Expiry</Label>
 						<Select value={duration} onValueChange={setDuration}>
 							<SelectTrigger>
 								<SelectValue placeholder="Select duration" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="1">1 hour</SelectItem>
-								<SelectItem value="6">6 hours</SelectItem>
-								<SelectItem value="12">12 hours</SelectItem>
-								<SelectItem value="24">24 hours</SelectItem>
-								<SelectItem value="48">48 hours</SelectItem>
-								<SelectItem value="72">72 hours</SelectItem>
+								<SelectItem value="300">5 minutes</SelectItem>
+								<SelectItem value="1800">30 minutes</SelectItem>
+								<SelectItem value="3600">1 hour</SelectItem>
+								<SelectItem value="21600">6 hours</SelectItem>
+								<SelectItem value="43200">12 hours</SelectItem>
+								<SelectItem value="86400">24 hours</SelectItem>
+								<SelectItem value="172800">48 hours</SelectItem>
+								<SelectItem value="259200">72 hours</SelectItem>
 							</SelectContent>
 						</Select>
 					</div>

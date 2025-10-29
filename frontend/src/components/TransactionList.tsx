@@ -12,6 +12,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { Escrow } from "@/hooks/useFlowEscrow";
 import { useFlowEscrow } from "@/hooks/useFlowEscrow";
+import { useEffect, useState } from "react";
+import fcl from "@/config/flow";
 
 interface TransactionListProps {
 	escrows: Escrow[];
@@ -25,7 +27,7 @@ export const TransactionList = ({
 	onRefresh,
 }: TransactionListProps) => {
 	const { toast } = useToast();
-	const { refundEscrow, loading } = useFlowEscrow();
+	const { refundEscrow, loading, triggerRefundAllExpired } = useFlowEscrow();
 
 	const copyToClipboard = (text: string, label: string) => {
 		navigator.clipboard.writeText(text);
@@ -56,6 +58,9 @@ export const TransactionList = ({
 
 	const handleRefund = async (id: string) => {
 		try {
+			const currentUser = await fcl.currentUser.snapshot();
+			console.log("walletAddress prop:", walletAddress);
+			console.log("fcl.currentUser address:", currentUser.addr);
 			await refundEscrow(id);
 			toast({
 				title: "Refund Successful",
@@ -113,6 +118,15 @@ export const TransactionList = ({
 		);
 	};
 
+	const [hasExpiredAutoRefunds, setHasExpiredAutoRefunds] = useState(false);
+
+	useEffect(() => {
+		const expiredAuto = escrows.some(
+			(escrow) => isExpired(escrow.expiry) && escrow.refundMode === "auto"
+		);
+		setHasExpiredAutoRefunds(expiredAuto);
+	}, [escrows]);
+
 	const getTransactionIcon = (escrow: Escrow) => {
 		if (escrow.sender === walletAddress) {
 			return <ArrowUpRight className="h-5 w-5 text-primary" />;
@@ -143,14 +157,48 @@ export const TransactionList = ({
 				<h2 className="text-xl font-semibold text-foreground">
 					Escrow History
 				</h2>
-				<Button
-					variant="ghost"
-					size="sm"
-					onClick={onRefresh}
-					disabled={loading}
-				>
-					<RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-				</Button>
+				<div className="flex items-center gap-2">
+					{hasExpiredAutoRefunds && (
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={async () => {
+								try {
+									await triggerRefundAllExpired();
+									toast({
+										title: "Automatic Refund Triggered",
+										description:
+											"Expired auto-refund escrows are being processed.",
+									});
+									onRefresh(); // Refresh the list after triggering
+								} catch (error) {
+									toast({
+										variant: "destructive",
+										title: "Automatic Refund Failed",
+										description:
+											error instanceof Error
+												? error.message
+												: "Failed to trigger automatic refunds",
+									});
+								}
+							}}
+							disabled={loading}
+						>
+							<RefreshCw
+								className={`h-4 w-4 mr-2 ${loading ? "animate-spin" : ""}`}
+							/>
+							Refund All Expired (Auto)
+						</Button>
+					)}
+					<Button
+						variant="ghost"
+						size="sm"
+						onClick={onRefresh}
+						disabled={loading}
+					>
+						<RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+					</Button>
+				</div>
 			</div>
 			<div className="space-y-4">
 				{escrows.map((escrow) => (
@@ -174,30 +222,9 @@ export const TransactionList = ({
 									<div className="flex items-center gap-2 text-sm text-muted-foreground">
 										<span>
 											{escrow.sender === walletAddress
-												? `To: ${escrow.receiver.slice(
-														0,
-														6
-												  )}...${escrow.receiver.slice(-4)}`
-												: `From: ${escrow.sender.slice(
-														0,
-														6
-												  )}...${escrow.sender.slice(-4)}`}
+												? `To: ${escrow.receiver}`
+												: `From: ${escrow.sender}`}
 										</span>
-										<Button
-											variant="ghost"
-											size="sm"
-											className="h-auto p-0 text-xs"
-											onClick={() =>
-												copyToClipboard(
-													escrow.sender === walletAddress
-														? escrow.receiver
-														: escrow.sender,
-													"Address"
-												)
-											}
-										>
-											<Copy className="h-3 w-3" />
-										</Button>
 									</div>
 								</div>
 							</div>
@@ -233,8 +260,7 @@ export const TransactionList = ({
 								<span className="ml-2">• Mode: {escrow.refundMode}</span>
 							</div>
 
-							{escrow.state === "Active" &&
-								isExpired(escrow.expiry) &&
+							{isExpired(escrow.expiry) &&
 								escrow.sender === walletAddress &&
 								escrow.refundMode === "manual" && (
 									<Button

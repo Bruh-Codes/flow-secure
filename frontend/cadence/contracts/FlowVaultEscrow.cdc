@@ -167,8 +167,8 @@ access(all) contract FlowVaultEscrow {
         emit EscrowClaimed(id: id, receiver: escrow.receiver, when: currentTime)
     }
 
-    /// Refund a single escrow (after expiry, callable by anyone)
-    access(all) fun refundEscrow(id: UInt64) {
+    /// Refund a single escrow (after expiry, callable by sender for manual refunds)
+    access(all) fun refundEscrow(id: UInt64, signerAddress: Address) {
         pre {
             self.escrows.containsKey(id): "Escrow not found"
         }
@@ -179,6 +179,8 @@ access(all) contract FlowVaultEscrow {
         // Validate refund conditions
         assert(escrow.state == EscrowState.Active, message: "Escrow is not active")
         assert(currentTime > escrow.expiry, message: "Escrow has not expired yet")
+        assert(escrow.refundMode.toLower() == "manual", message: "Only manual refund escrows can be refunded this way")
+        assert(signerAddress == escrow.sender, message: "Only the sender can refund this escrow")
 
         // Update state using setter
         escrow.setState(EscrowState.Refunded)
@@ -317,11 +319,13 @@ access(all) contract FlowVaultEscrow {
         return false
     }
 
-    /// Check if an escrow is refundable
-    access(all) fun isRefundable(id: UInt64): Bool {
+    /// Check if an escrow is refundable by a specific address
+    access(all) fun isRefundable(id: UInt64, byAddress: Address): Bool {
         if let escrow = self.escrows[id] {
             return escrow.state == EscrowState.Active && 
-                   getCurrentBlock().timestamp > escrow.expiry
+                   getCurrentBlock().timestamp > escrow.expiry &&
+                   escrow.refundMode.toLower() == "manual" &&
+                   escrow.sender == byAddress
         }
         return false
     }

@@ -1,157 +1,131 @@
 <img width="889" height="500" alt="image" src="https://github.com/user-attachments/assets/0d450109-6d93-4fb0-a25a-536ad6f42582" />
 
-## Problem Solved
+# FlowVault Secure
 
-Flow-Secure addresses the critical need for **trustless, automated, and secure conditional asset transfers** on the Flow blockchain. It tackles:
+FlowVault Secure is a comprehensive decentralized escrow system built on the Flow blockchain, offering secure, time-based `FlowToken` payments with advanced features like automated refunds. This repository contains both the core smart contract logic and the user-friendly frontend application.
 
-1.  **Lack of Trust in Peer-to-Peer Transactions:** Eliminates the need for intermediaries by holding funds in a smart contract, ensuring release only upon predefined conditions.
-2.  **Manual & Inefficient Time-Sensitive Actions:** Leverages **Flow Forte automation and scheduled transactions** to automatically refund expired escrows, removing manual oversight and ensuring timely execution.
-3.  **Opaque & Insecure Transfers:** Provides transparency and auditability through open-source Cadence smart contracts, with built-in security measures.
+## Key Features
 
-# Introducing Flow-Secure
-
-Flow-Secure is a decentralized escrow application that allows for secure, time-locked transfers of native currency and Flow tokens on the Flow blockchain. It features robust Cadence smart contracts and a modern, user-friendly web interface. This project is designed to be integrated with Forte Workflows and automations.
-
-## How It Works: The Escrow Process
-
-The `FlowVaultEscrow` smart contract provides the following core functionalities:
-
-- **Escrow Creation**: Users can create an escrow for either native currency (e.g., ETH) or any ERC20 token. When creating an escrow, the sender specifies the recipient's address, the amount, and an expiry timestamp. For ERC20 token escrows, the sender must first grant approval to the contract to transfer the specified amount.
-
-- **Active Escrow**: Once created, the funds are securely held within the `FlowVaultEscrow` contract, and the escrow is marked as `Active`.
-
-- **Claiming Funds**: The designated recipient can claim the entire amount from the escrow at any point before the expiry time. Upon a successful claim, the funds are transferred to the recipient, and the escrow's status changes to `Claimed`.
-
-- **Refunding**: If the expiry time is reached and the funds have not been claimed by the recipient, the original sender has the right to a refund. The sender can call the refund function to retrieve their locked funds, and the escrow's status will be updated to `Refunded`.
-
-- **Security & Events**: The contract is built with security in mind, incorporating a re-entrancy guard to prevent common attack vectors. It also emits events (`EscrowCreated`, `EscrowClaimed`, `EscrowRefunded`) for each major action, allowing for easy off-chain monitoring and integration.
-
-## Forte Integration — Automations & Workflows
-
-FlowVault integrates Flow Forte Actions & Workflows to automate escrow management on-chain — removing the need for manual intervention once an escrow is created.
-
-## How It Works
-
-When a new escrow is created, the contract emits an EscrowCreated event containing:
-
-Escrow ID
-
-Sender
-
-Receiver
-
-Amount
-
-Expiry timestamp
-
-Forte listens to this event via its Connector, then automatically sets up a scheduled workflow tied to that escrow.
-
-Automation Logic
-
-Event Trigger:
-EscrowCreated triggers a Forte workflow that starts tracking that escrow.
-
-Scheduled Wait:
-Forte waits until the escrow’s expiry time using its native scheduling primitives (delay_until).
-
-Conditional Check:
-Once expiry is reached, Forte queries the contract using getEscrow(id) to verify the escrow’s state.
-
-Auto Refund Execution:
-
-If the escrow is still Active and not claimed,
-Forte automatically calls refundEscrow(id) on the contract.
-
-The funds are instantly refunded to the sender, and
-the event EscrowRefunded is emitted.
-
-Dashboard Update:
-The frontend listens for EscrowRefunded and updates the escrow status to Refunded automatically by Forte.
-
-## Deployment
-
-The Flow-Secure Cadence contracts are deployed on the **Flow Testnet**.
-
-**FlowVaultEscrow Contract Address:** `0xa72b13062e901c7c`
-**Flowscan Link (FlowVaultEscrow):** [https://testnet.flowscan.io/contract/A.a72b13062e901c7c.FlowVaultEscrow](https://testnet.flowscan.io/contract/A.a72b13062e901c7c.FlowVaultEscrow)
-
-**EscrowRefundHandler Contract Address:** `0xa72b13062e901c7c`
-**Flowscan Link (EscrowRefundHandler):** [https://testnet.flowscan.io/contract/A.a72b13062e901c7c.EscrowRefundHandler](https://testnet.flowscan.io/contract/A.a72b13062e901c7c.EscrowRefundHandler)
-
-## Project Structure
-
-This project is a monorepo managed with Yarn Workspaces.
-
-- `flowVault/`: A Cadence project containing the `FlowVaultEscrow` smart contract and Forte integration.
-- `frontend/`: A React application providing the web interface for interacting with the escrow system. See [frontend/README.md](frontend/README.md) for more details.
+- **Wallet Connection:** Connects to Flow wallets using FCL (Flow Client Library).
+- **Create Escrow:** Allows users to create new escrows by specifying a recipient, amount, expiry duration, and refund mode (manual or automatic).
+- **Claim Escrow:** Enables recipients to claim their escrowed FLOW tokens.
+- **Escrow History:** Displays a list of all active, claimed, and refunded escrows relevant to the connected wallet.
+- **Manual Refund:** Provides an option for senders to manually refund expired escrows (if the refund mode was set to manual).
+- **Forte Integration:** Supports automatic refunds for escrows created with the "auto" refund mode, leveraging Flow Forte Workflows.
+- **Responsive Design:** Built with Tailwind CSS and shadcn/ui for a modern and responsive user experience.
 
 ---
 
-## Tech Stack
+## Smart Contracts: FlowVault
 
-| Area               | Technologies                                                                                                                                                                                             |
-| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Smart Contract** | Cadence, [Flow CLI](https://docs.onflow.org/flow-cli/), [Flow Emulator](https://docs.onflow.org/flow-cli/#flow-emulator)                                                                                                      |
-| **Frontend**       | [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/), [Tailwind CSS](https://tailwindcss.com/), [shadcn/ui](https://ui.shadcn.com/), [FCL (Flow Client Library)](https://developers.flow.com/tools/fcl-js/) |
-| **Automation**     | Forte Workflows                                                                                                                                                                                          |
+FlowVault is a decentralized escrow smart contract system on the Flow blockchain, enabling secure, time-based `FlowToken` payments. It integrates with **Forte**, Flow's native transaction scheduler, for automated refunds of expired escrows, offering a more reliable and user-friendly experience than traditional systems.
 
----
+### Problem Solved: The Costly Mistake of Wrong Addresses & Manual Refunds
 
-## Prerequisites
+Have you ever worried about sending cryptocurrency to the wrong address, losing your funds forever? Or dealt with cumbersome, manual processes to get your money back from an expired transaction?
 
-Before you begin, ensure you have the following installed:
+FlowVault directly addresses these critical pain points in decentralized finance by providing:
 
-- [Node.js](https://nodejs.org/en) (v18 or later)
-- [Yarn](https://yarnpkg.com/getting-started/install)
-- [Flow CLI](https://docs.onflow.org/flow-cli/install)
+- **Protection Against Wrong Addresses:** Funds are held securely in an escrow, allowing you to reclaim them if the recipient doesn't claim within the set time, or if you need to manually refund. This acts as a safety net against accidental transfers to incorrect or unresponsive addresses.
+- **Automated & Reliable Refunds:** Leveraging Flow's Forte service, FlowVault automatically processes refunds for expired escrows. No more chasing recipients or manual intervention – your funds are returned to you seamlessly.
+- **Trustless Transactions:** Eliminating the need for intermediaries, all funds are secured by smart contract logic, ensuring your assets are safe from censorship or misuse.
+- **Transparency & Auditability:** Every escrow activity is recorded on the Flow blockchain, providing a transparent and immutable audit trail for all transactions.
 
----
+### Smart Contract Capabilities
 
-## Getting Started
+- **Trustless & Secure:** Funds held in smart contracts, removing third-party risk.
+- **Time-Based Escrows:** Funds locked until a specified expiry date.
+- **Automated Refunds (Forte):** Senders can opt-in for automatic refunds upon escrow expiry.
+- **On-Chain Audit Trail:** Transparent and immutable history of all escrow actions.
+- **Full Cadence Logic:** Entire system implemented in Cadence smart contracts.
+- **Queryable & Composable:** Rich on-chain functions for easy integration.
 
-### 1. Clone the Repository
+### How It Works
 
-```bash
-git clone https://github.com/Bruh-Codes/flow-vault-secure
-cd flow-vault-secure
+FlowVault escrows transition through `Active`, `Claimed`, or `Refunded` states:
+
+1.  **Creation:** Sender creates an escrow with Receiver, amount, expiry, and `refundMode` (`"manual"` or `"auto"`). Funds are held in the contract.
+2.  **Claiming:** Receiver can claim funds before expiry.
+3.  **Refunding:** Expired `manual` escrows can be refunded by the sender. Expired `auto` escrows are automatically refunded by a Forte Agent.
+
+### Project Structure
+
+Cadence code is organized into:
+
+- `contracts/`: Core smart contracts. View deployed contracts on the [Flow Contract Browser](https://contractbrowser.com/account/0x8930cf9fab05a37b/contracts).
+- `transactions/`: Transaction scripts for interactions.
+- `scripts/`: Scripts for querying escrow states.
+- `tests/`: Automated test files.
+
+### Getting Started (Smart Contracts)
+
+This guide outlines the basic steps for a developer to get started with the FlowVault smart contracts.
+
+#### Prerequisites
+
+Ensure you have the [Flow CLI](https://developers.flow.com/tools/flow-cli/install) installed.
+
+#### Account Setup and `flow.json` Configuration
+
+1.  **Create a Flow Account:** If you don't have one, create a Flow account. You can use the Flow CLI for this.
+2.  **Configure `flow.json`:** Ensure your project's `flow.json` file is correctly configured with your account details and contract deployment order. This file defines how your contracts are deployed and which accounts are used.
+
+#### Deploying the Project
+
+Once your `flow.json` is configured and the Flow Emulator is running (if deploying locally), you can deploy the smart contracts:
+
+```sh
+flow project deploy
 ```
-### 2. Install Dependencies
 
-Run the following command from the root directory to install all necessary dependencies for both the frontend and the smart contract project.
+This command will deploy the contracts specified in your `flow.json` to the configured account.
+
+### Testing (Smart Contracts)
+
+Automated tests are in `cadence/tests/`. Run all tests with:
+
+```sh
+flow test ./cadence/tests/*
+```
+
+### Future Improvements (Smart Contracts)
+
+- Support for Multiple Fungible Tokens.
+- Milestone-Based Escrows.
+- Dispute Resolution.
+
+---
+
+## Frontend Application
+
+This section details the frontend application for FlowVault Secure.
+
+### Tech Stack
+
+- **Framework:** React
+- **Language:** TypeScript
+- **Build Tool:** Vite
+- **Styling:** Tailwind CSS, shadcn/ui
+- **Flow Integration:** FCL (Flow Client Library), @onflow/react-sdk
+- **State Management:** React Hooks
+- **Routing:** React Router DOM
+- **Notifications:** Sonner
+
+### Getting Started (Frontend)
+
+#### Prerequisites
+
+Ensure you have [Node.js](https://nodejs.org/en) (v18 or later) and [Yarn](https://yarnpkg.com/getting-started/install) installed.
+
+#### Installation
+
+From the project root directory, install all dependencies:
 
 ```bash
 yarn install
 ```
 
-### 3. Set up the Smart Contracts
-
-The smart contracts are managed using the Flow CLI.
-
-**Run Local Flow Emulator**
-
-For local development and testing, you can start a local Flow emulator:
-
-```bash
-flow emulator
-```
-
-**Deploy Contracts to Emulator**
-
-To deploy the contracts to your local emulator:
-
-```bash
-flow project deploy
-```
-
-**Test the Contracts**
-
-To run the test suite for the `FlowVaultEscrow` contract:
-
-```bash
-flow test
-```
-
-### 4. Run the Frontend
+#### Running the Development Server
 
 To start the frontend development server:
 
@@ -161,13 +135,56 @@ yarn frontend:dev
 
 The application will be available at `http://localhost:5173` (or the next available port).
 
----
+#### Building for Production
 
-## Available Scripts
+To build the application for production:
 
-You can run the following scripts from the root directory of the project:
+```bash
+yarn frontend:build
+```
 
-- `yarn frontend:dev`: Starts the frontend development server.
-- `yarn frontend:build`: Builds the frontend application for production.
-- `yarn contracts:test`: Runs the Cadence smart contract tests using Flow CLI.
-- `yarn contracts:deploy`: Deploys the Cadence smart contracts to the configured network.
+The build artifacts will be placed in the `dist` directory.
+
+### Configuration (Frontend)
+
+The Flow network configuration and contract addresses are defined in `src/config/flow.ts`. Ensure these addresses match your deployed Cadence contracts on the target Flow network (e.g., Testnet).
+
+### Interaction with Flow Contracts (Frontend)
+
+The frontend interacts with the `FlowVaultEscrow` Cadence contract deployed on the Flow blockchain. Key interactions include:
+
+- **`createEscrow`:** Initiates a transaction to create a new escrow on-chain.
+- **`claimEscrow`:** Initiates a transaction for a recipient to claim funds from an active escrow.
+- **`refundEscrow`:** Initiates a transaction for a sender to manually refund an expired escrow.
+- **`fetchActiveEscrows`:** Queries the blockchain to retrieve a list of active escrows.
+
+The `useFlowEscrow` hook (`src/hooks/useFlowEscrow.ts`) encapsulates all the Cadence transaction and script logic for these interactions.
+
+### Testing with Local Accounts (Frontend)
+
+For local development and testing, you might need to configure your Flow client (FCL) to use a private key associated with a test account. This allows your frontend to sign transactions directly from your development environment.
+
+**Important:** Never use private keys from your mainnet accounts for local testing. Always use dedicated testnet accounts.
+
+To add a private key to your Flow configuration (e.g., in `flow.json` or directly in your FCL setup), you typically need to:
+
+1.  **Generate a test account** on the Flow Testnet (or local emulator).
+2.  **Obtain the private key** for that test account.
+3.  **Configure FCL** (usually in `flow.json` or `src/config/flow.ts`) to include this private key for the desired account address. The exact method depends on your FCL setup, but it often involves adding an `accounts` object with the address and private key.
+
+Example (conceptual, actual implementation may vary based on your `flow.json` or FCL config):
+
+```json
+{
+  "contracts": { ... },
+  "networks": { ... },
+  "accounts": {
+    "test-account": {
+      "address": "0x...",
+      "keys": "YOUR_PRIVATE_KEY_HERE"
+    }
+  }
+}
+```
+
+Refer to the [Flow Client Library (FCL) documentation](https://developers.flow.com/tools/clients/fcl-js/configure-fcl) for detailed instructions on configuring accounts and keys.

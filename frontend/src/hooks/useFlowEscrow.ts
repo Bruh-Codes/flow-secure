@@ -23,7 +23,7 @@ export const useFlowEscrow = () => {
 		try {
 			const result = await fcl.query({
 				cadence: `
-        import FlowVaultEscrow from 0xa72b13062e901c7c
+        import FlowVaultEscrow from 0x8930cf9fab05a37b
 
         access(all) fun main(): [FlowVaultEscrow.Escrow] {
             return FlowVaultEscrow.getActiveEscrows()
@@ -156,21 +156,22 @@ export const useFlowEscrow = () => {
 			return false;
 		}
 	};
-	// not used now
 	const checkIsRefundable = async (id: string) => {
 		try {
+			const currentUser = await fcl.currentUser.snapshot();
+			if (!currentUser.addr) {
+				console.warn("No current user address found for refundable check.");
+				return false;
+			}
 			const result = await fcl.query({
 				cadence: `
-        
-        access(all) fun isRefundable(id: UInt64): Bool {
-        if let escrow = self.escrows[id] {
-            return escrow.state == EscrowState.Active && 
-                   getCurrentBlock().timestamp > escrow.expiry
+        import FlowVaultEscrow from 0x8930cf9fab05a37b
+
+        access(all) fun main(escrowId: UInt64, byAddress: Address): Bool {
+            return FlowVaultEscrow.isRefundable(id: escrowId, byAddress: byAddress)
         }
-        return false
-    }
         `,
-				args: (arg, t) => [arg(id, t.UInt64)],
+				args: (arg, t) => [arg(id, t.UInt64), arg(currentUser.addr, t.Address)],
 			});
 			return result;
 		} catch (error) {
@@ -198,7 +199,7 @@ export const useFlowEscrow = () => {
 				cadence: `
 import FungibleToken from 0x9a0766d93b6608b7
 import FlowToken from 0x7e60df042a9c0868
-import FlowVaultEscrow from 0xa72b13062e901c7c
+import FlowVaultEscrow from 0x8930cf9fab05a37b
 
 transaction(receiver: Address, amount: UFix64, expiry: UFix64, refundMode: String) {
 
@@ -251,7 +252,7 @@ transaction(receiver: Address, amount: UFix64, expiry: UFix64, refundMode: Strin
 				cadence: `
 import FungibleToken from 0x9a0766d93b6608b7
 import FlowToken from 0x7e60df042a9c0868
-import FlowVaultEscrow from 0xa72b13062e901c7c
+import FlowVaultEscrow from 0x8930cf9fab05a37b
 
 transaction(id: UInt64) {
     prepare(signer: auth(Storage, Capabilities) &Account) {
@@ -280,41 +281,18 @@ transaction(id: UInt64) {
 			setLoading(false);
 		}
 	};
-	//used now
 	const refundEscrow = async (id: string) => {
 		setLoading(true);
 		try {
 			const txId = await fcl.mutate({
 				cadence: `
-        access(all) fun refundEscrow(id: UInt64) {
-        pre {
-            self.escrows.containsKey(id): "Escrow not found"
-        }
+import FlowVaultEscrow from 0x8930cf9fab05a37b
 
-        let escrow = self.escrows[id]!
-        let currentTime = getCurrentBlock().timestamp
-
-        // Validate refund conditions
-        assert(escrow.state == EscrowState.Active, message: "Escrow is not active")
-        assert(currentTime > escrow.expiry, message: "Escrow has not expired yet")
-
-        // Update state using setter
-        escrow.setState(EscrowState.Refunded)
-        self.escrows[id] = escrow
-
-        // Get sender's vault capability using Capability Controllers API
-        let senderAccount = getAccount(escrow.sender)
-        let receiverCap = senderAccount.capabilities
-            .get<&{FungibleToken.Receiver}>(/public/flowTokenReceiver)
-            .borrow()
-            ?? panic("Sender vault capability not found")
-
-        // Transfer funds back to sender
-        let vault <- self.escrowVaults.remove(key: id)!
-        receiverCap.deposit(from: <-vault)
-
-        emit EscrowRefunded(id: id, sender: escrow.sender, when: currentTime)
+transaction(escrowId: UInt64) {
+    prepare(signer: auth(Storage, Capabilities) &Account) {
+        FlowVaultEscrow.refundEscrow(id: escrowId, signerAddress: signer.address)
     }
+}
         `,
 				args: (arg, t) => [arg(id, t.UInt64)],
 				limit: 9999,
@@ -325,6 +303,39 @@ transaction(id: UInt64) {
 			return txId;
 		} catch (error) {
 			console.error("Error refunding escrow:", error);
+			throw error;
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const triggerRefundAllExpired = async () => {
+		setLoading(true);
+		try {
+			const txId = await fcl.mutate({
+				cadence: `
+import FlowVaultEscrow from 0x8930cf9fab05a37b
+
+transaction {
+  prepare(signer: auth(Storage, Capabilities) &Account) {
+    // This prepare block makes the transaction expect 1 authorizer.
+    // The signer is not explicitly used in execute, but its presence
+    // satisfies the authorizer count.
+  }
+  execute {
+    FlowVaultEscrow.refundAllExpired()
+  }
+}
+        `,
+				args: (arg, t) => [], // No arguments needed for refundAllExpired
+				limit: 9999,
+			});
+
+			await fcl.tx(txId).onceSealed();
+			await fetchActiveEscrows();
+			return txId;
+		} catch (error) {
+			console.error("Error triggering refundAllExpired:", error);
 			throw error;
 		} finally {
 			setLoading(false);
@@ -344,5 +355,6 @@ transaction(id: UInt64) {
 		createEscrow,
 		claimEscrow,
 		refundEscrow,
+		triggerRefundAllExpired, // Added for automatic refunds
 	};
 };
