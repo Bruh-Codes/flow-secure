@@ -1,5 +1,4 @@
 # flow
-emulator-account.pkey
 .env
 .vercel
-testnet-dev.pkey
+*.pkey
